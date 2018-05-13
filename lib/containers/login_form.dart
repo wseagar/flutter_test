@@ -118,7 +118,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   RaisedButton buildLoginButton() {
-    return new RaisedButton(
+    return new RaisedButton( 
         color: colorStyles["primary_light"],
         onPressed: () => _submit(),
         child: new Text("LOGIN",

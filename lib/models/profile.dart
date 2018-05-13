@@ -3,10 +3,13 @@ class Profile {
   final int age;
   final String imgPath;
 
-  Profile(this.name, this.age, this.imgPath);
+  final int commonFriends;
+  final int commonLikes;
+
+  Profile(this.name, this.age, this.imgPath, this.commonFriends, this.commonLikes);
 
   @override
   String toString() {
-    return '{name: $name, age: $age, imgPath: $imgPath}';
+    return '{name: $name, age: $age, imgPath: $imgPath, commonFriends: $commonFriends, commonLikes: $commonLikes}';
   }
 }

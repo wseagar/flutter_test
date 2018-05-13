@@ -1,7 +1,9 @@
+import 'dart:collection';
+
 import 'package:dating/models/app_state.dart';
 import 'package:dating/styles/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:dating/models/profile.dart';
+import 'package:dating/services/profile_service.dart';
 import 'package:flutter/animation.dart';
 import 'package:dating/actions/card_actions.dart';
 
@@ -9,6 +11,8 @@ import 'dart:math';
 
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/src/store.dart';
+
+import '../models/profile.dart';
 
 class CardsContainer extends StatefulWidget {
   @override
@@ -52,6 +56,8 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
   bool swipeRight = false;
   static final finalPos = 30.0;
 
+  final Queue<Profile> _profiles = new Queue<Profile>();
+
   @override
   void initState() {
     super.initState();
@@ -82,7 +88,7 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
       });
     });
 
-    swipeController = new AnimationController(duration: new Duration(milliseconds: 500), vsync: this);
+    swipeController = new AnimationController(duration: new Duration(milliseconds: 300), vsync: this);
 
     swipeAnimation = new Tween(begin: 0.0, end: 1.0).animate(swipeController);
 
@@ -114,9 +120,11 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
       }
     });
 
-    for (cardsCounter = 0; cardsCounter < 3; cardsCounter++) {
-      cardsNums.add(cardsCounter);
-    }
+    _getMoreProfiles();
+  }
+
+  void _getMoreProfiles() {
+    getProfiles().then((profiles) => setState(() => profiles.forEach((p) => _profiles.addLast(p))));
   }
 
   dispose() {
@@ -146,8 +154,13 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
       secondCardWidth = secondCardWidthEnd;
     }
 
-    return new Expanded(
-      child: new Stack(
+    if (_profiles.length <= 3) {
+      return new Center(
+        child: new CircularProgressIndicator(backgroundColor: colorStyles['gray'], strokeWidth: 2.0),
+      );
+    }
+
+    return new Stack(
         children: <Widget>[
           // Middle card
           new Align(
@@ -156,7 +169,7 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
               child: new SizedBox.fromSize(
                 size: new Size(MediaQuery.of(context).size.width * secondCardWidth,
                     MediaQuery.of(context).size.height * secondCardHeight),
-                child: new ProfileCard(cardsNums[1]),
+                child: new ProfileCard(_profiles.elementAt(1) ?? null),
               ),
             ),
           ),
@@ -167,7 +180,7 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
               size: new Size(MediaQuery.of(context).size.width * 0.9, MediaQuery.of(context).size.height * 0.8),
               child: new Transform.rotate(
                 angle: (pi / 180.0) * frontCardRot,
-                child: new ProfileCard(cardsNums[0], likeButtonClick),
+                child: new ProfileCard(_profiles.first, likeButtonClick),
               ),
             ),
           ),
@@ -227,8 +240,7 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
             ),
           )
         ],
-      ),
-    );
+      );
   }
 
   void onPanEnd() {
@@ -269,29 +281,33 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
 
   void updateOnPan(DragUpdateDetails details, BuildContext context) {
     frontCardAlign = new Alignment(frontCardAlign.x + 20 * details.delta.dx / MediaQuery.of(context).size.width,
-        frontCardAlign.y + 80 * details.delta.dy / MediaQuery.of(context).size.height);
+        frontCardAlign.y + 20 * details.delta.dy / MediaQuery.of(context).size.height);
 
     frontCardRot = frontCardAlign.x /* * rotation speed */;
   }
 
   void changeCardsOrder() {
     setState(() {
-      cardsNums[0] = cardsNums[1];
+      _profiles.removeFirst();
+      if (_profiles.length < 10) {
+        _getMoreProfiles();
+      }
+
+      if (_profiles.length < 2) {
+
+      }
 
       heartOpacity = 0.0;
       crossOpacity = 0.0;
-
-      cardsNums[1] = cardsCounter;
-      cardsCounter++;
     });
   }
 }
 
 class ProfileCard extends StatelessWidget {
-  final int cardNum;
+  final Profile _profile;
   final Function like;
 
-  ProfileCard(this.cardNum, [this.like = null]);
+  ProfileCard(this._profile, [this.like = null]);
 
   BuildContext _context;
 
@@ -334,7 +350,7 @@ class ProfileCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           new Text(
-            'Card number $cardNum',
+            _profile.name + ', ' + _profile.age.toString(),
             style: new TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700),
           ),
           new Padding(padding: new EdgeInsets.only(bottom: 8.0)),
@@ -350,7 +366,7 @@ class ProfileCard extends StatelessWidget {
         decoration: new BoxDecoration(
           image: new DecorationImage(
             fit: BoxFit.fill,
-            image: new AssetImage('assets/will.jpg'),
+            image: new AssetImage(_profile.imgPath),
           ),
         ),
       ),
