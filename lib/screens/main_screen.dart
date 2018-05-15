@@ -2,6 +2,7 @@ import 'package:dating/actions/auth_actions.dart';
 import 'package:dating/models/app_state.dart';
 import 'package:dating/models/user.dart';
 import 'package:dating/containers/cards_container.dart';
+import 'package:dating/styles/colors.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -42,13 +43,22 @@ class MainScreen extends StatelessWidget {
                 ),
               ),
               appBar: new AppBar(
-                title: new Text("Tinder"),
+                title: new Text(
+                  "Movies",
+                  style: new TextStyle(color: colorStyles['primary']),
+                ),
+                actions: <Widget>[
+                  new Icon(Icons.folder_special),
+                ],
+                iconTheme: new IconThemeData(
+                  color: colorStyles['gray'],
+                ),
+                centerTitle: true,
+                backgroundColor: Colors.white,
               ),
               body: new TabBarView(
                 physics: new NeverScrollableScrollPhysics(),
-                children: <Widget>[
-                  new CardsContainer(),
-                  new Text("Chat goes here")],
+                children: <Widget>[new CardsContainer(), new Text("Chat goes here")],
               ),
             ),
           ),

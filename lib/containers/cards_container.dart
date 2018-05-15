@@ -1,18 +1,14 @@
 import 'dart:collection';
 
-import 'package:dating/models/app_state.dart';
 import 'package:dating/styles/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:dating/services/profile_service.dart';
 import 'package:flutter/animation.dart';
-import 'package:dating/actions/card_actions.dart';
 
 import 'dart:math';
 
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/src/store.dart';
 
-import '../models/profile.dart';
+import 'package:dating/models/profile.dart';
 
 class CardsContainer extends StatefulWidget {
   @override
@@ -42,11 +38,11 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
 
   bool swiping = false;
 
-  static final double secondCardWidthStart = 0.85;
-  static final double secondCardHeightStart = 0.78;
+  static final double secondCardWidthStart = 0.90;
+  static final double secondCardHeightStart = 0.85;
 
-  static final double secondCardWidthEnd = 0.90;
-  static final double secondCardHeightEnd = 0.80;
+  static final double secondCardWidthEnd = 0.95;
+  static final double secondCardHeightEnd = 0.85;
 
   Animation<double> resetAnimation;
   Animation<double> swipeAnimation;
@@ -54,7 +50,7 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
   AnimationController swipeController;
 
   bool swipeRight = false;
-  static final finalPos = 30.0;
+  static final finalPos = 60.0;
 
   final Queue<Profile> _profiles = new Queue<Profile>();
 
@@ -124,7 +120,12 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
   }
 
   void _getMoreProfiles() {
-    getProfiles().then((profiles) => setState(() => profiles.forEach((p) => _profiles.addLast(p))));
+    getProfiles().then((profiles) => 
+      setState(() {
+        for (var profile in profiles) {
+          _profiles.addLast(profile);
+        }
+      }));
   }
 
   dispose() {
@@ -161,86 +162,86 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
     }
 
     return new Stack(
-        children: <Widget>[
-          // Middle card
-          new Align(
-            alignment: middleCardAlign,
-            child: new IgnorePointer(
-              child: new SizedBox.fromSize(
-                size: new Size(MediaQuery.of(context).size.width * secondCardWidth,
-                    MediaQuery.of(context).size.height * secondCardHeight),
-                child: new ProfileCard(_profiles.elementAt(1) ?? null),
-              ),
+      children: <Widget>[
+        // Middle card
+        new Align(
+          alignment: middleCardAlign,
+          child: new IgnorePointer(
+            child: new SizedBox.fromSize(
+              size: new Size(MediaQuery.of(context).size.width * secondCardWidth,
+                  MediaQuery.of(context).size.height * secondCardHeight),
+              child: new ProfileCard(_profiles.elementAt(1) ?? null),
             ),
           ),
-          // Front card
-          new Align(
-            alignment: frontCardAlign,
-            child: new SizedBox.fromSize(
-              size: new Size(MediaQuery.of(context).size.width * 0.9, MediaQuery.of(context).size.height * 0.8),
-              child: new Transform.rotate(
-                angle: (pi / 180.0) * frontCardRot,
-                child: new ProfileCard(_profiles.first, likeButtonClick),
-              ),
+        ),
+        // Front card
+        new Align(
+          alignment: frontCardAlign,
+          child: new SizedBox.fromSize(
+            size: new Size(MediaQuery.of(context).size.width * 0.95, MediaQuery.of(context).size.height * 0.85),
+            child: new Transform.rotate(
+              angle: (pi / 180.0) * frontCardRot,
+              child: new ProfileCard(_profiles.first, likeButtonClick),
             ),
           ),
-          new Align(
-            alignment: frontCardAlign,
-            child: new SizedBox.fromSize(
-              size: new Size(MediaQuery.of(context).size.width * 0.9, MediaQuery.of(context).size.height * 0.8),
-              child: new Transform.rotate(
-                angle: (pi / 180.0) * frontCardRot,
-                child: new Container(
-                  alignment: Alignment(0.0, -0.8),
-                  child: new Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: <Widget>[
-                      new Opacity(
-                        opacity: heartOpacity,
-                        child: new Transform.rotate(
-                          angle: (pi / 180) * -25,
-                          child: new Icon(Icons.favorite_border,
-                              color: Colors.green, size: MediaQuery.of(context).size.height * 0.15),
-                        ),
+        ),
+        new Align(
+          alignment: frontCardAlign,
+          child: new SizedBox.fromSize(
+            size: new Size(MediaQuery.of(context).size.width * 0.95, MediaQuery.of(context).size.height * 0.85),
+            child: new Transform.rotate(
+              angle: (pi / 180.0) * frontCardRot,
+              child: new Container(
+                alignment: Alignment(0.0, -0.8),
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    new Opacity(
+                      opacity: heartOpacity,
+                      child: new Transform.rotate(
+                        angle: (pi / 180) * -25,
+                        child: new Icon(Icons.favorite_border,
+                            color: Colors.green, size: MediaQuery.of(context).size.height * 0.15),
                       ),
-                      new Opacity(
-                        opacity: crossOpacity,
-                        child: new Transform.rotate(
-                          angle: (pi / 180) * 25,
-                          child:
-                              new Icon(Icons.close, color: Colors.red, size: MediaQuery.of(context).size.height * 0.15),
-                        ),
+                    ),
+                    new Opacity(
+                      opacity: crossOpacity,
+                      child: new Transform.rotate(
+                        angle: (pi / 180) * 25,
+                        child:
+                            new Icon(Icons.close, color: Colors.red, size: MediaQuery.of(context).size.height * 0.15),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          new SizedBox.expand(
-            child: new GestureDetector(
-              // While dragging the first card
-              onPanUpdate: (DragUpdateDetails details) {
-                // Add what the user swiped in the last frame to the alignment of the card
-                setState(() {
-                  updateOnPan(details, context);
-                });
-              },
-              // When releasing the first card
-              onPanEnd: (DragEndDetails details) {
-                onPanEndAliignX = frontCardAlign.x;
-                onPanEndAliignY = frontCardAlign.y;
+        ),
+        new SizedBox.expand(
+          child: new GestureDetector(
+            // While dragging the first card
+            onPanUpdate: (DragUpdateDetails details) {
+              // Add what the user swiped in the last frame to the alignment of the card
+              setState(() {
+                updateOnPan(details, context);
+              });
+            },
+            // When releasing the first card
+            onPanEnd: (DragEndDetails details) {
+              onPanEndAliignX = frontCardAlign.x;
+              onPanEndAliignY = frontCardAlign.y;
 
-                if (details.velocity.pixelsPerSecond.dx > 2000.0 || details.velocity.pixelsPerSecond.dx < -2000.0) {
-                  doSwipe();
-                  return;
-                }
-                onPanEnd();
-              },
-            ),
-          )
-        ],
-      );
+              if (details.velocity.pixelsPerSecond.dx > 2000.0 || details.velocity.pixelsPerSecond.dx < -2000.0) {
+                doSwipe();
+                return;
+              }
+              onPanEnd();
+            },
+          ),
+        )
+      ],
+    );
   }
 
   void onPanEnd() {
@@ -293,9 +294,7 @@ class _CardsContainerState extends State<CardsContainer> with TickerProviderStat
         _getMoreProfiles();
       }
 
-      if (_profiles.length < 2) {
-
-      }
+      if (_profiles.length < 2) {}
 
       heartOpacity = 0.0;
       crossOpacity = 0.0;
@@ -350,7 +349,7 @@ class ProfileCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           new Text(
-            _profile.name + ', ' + _profile.age.toString(),
+            _profile.name + ', ' + _profile.age.toString() + "%",
             style: new TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700),
           ),
           new Padding(padding: new EdgeInsets.only(bottom: 8.0)),
